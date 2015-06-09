@@ -1,0 +1,414 @@
+{
+  "Description": "Vuforia",
+  "Mappings": {
+    "NatAmi": {
+      "ap-northeast-1": {
+        "AMI": "ami-c7e016c7"
+      },
+      "ap-southeast-1": {
+        "AMI": "ami-b098a9e2"
+      },
+      "ap-southeast-2": {
+        "AMI": "ami-0fed9d35"
+      },
+      "eu-central-1": {
+        "AMI": "ami-3604392b"
+      },
+      "eu-west-1": {
+        "AMI": "ami-cb7de3bc"
+      },
+      "sa-east-1": {
+        "AMI": "ami-93fb408e"
+      },
+      "us-east-1": {
+        "AMI": "ami-c02b04a8"
+      },
+      "us-west-1": {
+        "AMI": "ami-67a54423"
+      },
+      "us-west-2": {
+        "AMI": "ami-2dae821d"
+      }
+    }
+  },
+  "Parameters": {
+    "AvailabilityZone1": {
+      "AllowedPattern": "[-a-zA-Z0-9]*",
+      "ConstraintDescription": "Alphanumeric characters and dashes only",
+      "Default": "us-west-2a",
+      "Description": "Availability Zone name",
+      "MaxLength": "15",
+      "MinLength": "10",
+      "Type": "String"
+    },
+    "AvailabilityZone2": {
+      "AllowedPattern": "[-a-zA-Z0-9]*",
+      "ConstraintDescription": "Alphanumeric characters and dashes only",
+      "Default": "us-west-2b",
+      "Description": "Availability Zone name",
+      "MaxLength": "15",
+      "MinLength": "10",
+      "Type": "String"
+    },
+    "KeyName": {
+      "AllowedPattern": "[-_ a-zA-Z0-9]*",
+      "ConstraintDescription": "Alphanumeric characters, underscores, dashes only",
+      "Description": "Existing key pair to access instances",
+      "MaxLength": "64",
+      "MinLength": "1",
+      "Default": "ecvudwhpoc",
+      "Type": "String"
+    },
+    "NatInstanceType": {
+      "AllowedValues": [
+        "t1.micro",
+        "m1.small",
+        "m1.medium",
+        "m1.large",
+        "m1.xlarge",
+        "m2.xlarge",
+        "m2.2xlarge",
+        "m2.4xlarge",
+        "m3.xlarge",
+        "m3.2xlarge",
+        "c1.medium",
+        "c1.xlarge",
+        "cc1.4xlarge",
+        "cc2.8xlarge",
+        "cg1.4xlarge"
+      ],
+      "ConstraintDescription": "Instance type must be of a valid EC2 type",
+      "Default": "m1.small",
+      "Description": "EC2 instance type for NAT instances",
+      "Type": "String"
+    }
+  },
+  "Resources": {
+    "InternetGateway": {
+      "Type": "AWS::EC2::InternetGateway"
+    },
+    "NatInstance1": {
+      "DependsOn": "InternetGateway",
+      "Properties": {
+        "ImageId": {
+          "Fn::FindInMap": [
+            "NatAmi",
+            {
+              "Ref": "AWS::Region"
+            },
+            "AMI"
+          ]
+        },
+        "InstanceType": {
+          "Ref": "NatInstanceType"
+        },
+        "KeyName": {
+          "Ref": "KeyName"
+        },
+        "SecurityGroupIds": [
+          {
+            "Ref": "NatSecurityGroup"
+          }
+        ],
+        "SourceDestCheck": "false",
+        "SubnetId": {
+          "Ref": "PublicSubnet1"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "networkaddresstranslation1"
+          }
+        ]
+      },
+      "Type": "AWS::EC2::Instance"
+    },
+    "NatInstance2": {
+      "DependsOn": "InternetGateway",
+      "Properties": {
+        "ImageId": {
+          "Fn::FindInMap": [
+            "NatAmi",
+            {
+              "Ref": "AWS::Region"
+            },
+            "AMI"
+          ]
+        },
+        "InstanceType": {
+          "Ref": "NatInstanceType"
+        },
+        "KeyName": {
+          "Ref": "KeyName"
+        },
+        "SecurityGroupIds": [
+          {
+            "Ref": "NatSecurityGroup"
+          }
+        ],
+        "SourceDestCheck": "false",
+        "SubnetId": {
+          "Ref": "PublicSubnet2"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "networkaddresstranslation2"
+          }
+        ]
+      },
+      "Type": "AWS::EC2::Instance"
+    },
+    "JumpHost": {
+      "DependsOn": "InternetGateway",
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "DisableApiTermination": "false",
+        "InstanceInitiatedShutdownBehavior": "stop",
+        "ImageId": "ami-e7527ed7",
+        "InstanceType": "m3.medium",
+        "KeyName": {
+          "Ref": "KeyName"
+        },
+        "SubnetId": {
+          "Ref": "PublicSubnet1"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "jumphost1"
+          }
+        ],
+        "AssociatePublicIpAddress": "true"
+      }
+    },
+    "NatSecurityGroup": {
+      "Properties": {
+        "GroupDescription": "Allow NAT access from the VPC",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "FromPort": "80",
+            "IpProtocol": "tcp",
+            "ToPort": "80"
+          },
+          {
+            "CidrIp": "0.0.0.0/0",
+            "FromPort": "443",
+            "IpProtocol": "tcp",
+            "ToPort": "443"
+          }
+        ],
+        "SecurityGroupIngress": [
+          {},
+          {
+            "CidrIp": "10.101.192.0/23",
+            "FromPort": "80",
+            "IpProtocol": "tcp",
+            "ToPort": "80"
+          },
+          {
+            "CidrIp": "10.101.192.0/23",
+            "FromPort": "443",
+            "IpProtocol": "tcp",
+            "ToPort": "443"
+          }
+        ],
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      },
+      "Type": "AWS::EC2::SecurityGroup"
+    },
+    "PrivateRoute1": {
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "InstanceId": {
+          "Ref": "NatInstance1"
+        },
+        "RouteTableId": {
+          "Ref": "PrivateRouteTable1"
+        }
+      },
+      "Type": "AWS::EC2::Route"
+    },
+    "PrivateRoute2": {
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "InstanceId": {
+          "Ref": "NatInstance2"
+        },
+        "RouteTableId": {
+          "Ref": "PrivateRouteTable2"
+        }
+      },
+      "Type": "AWS::EC2::Route"
+    },
+    "PrivateRouteTable1": {
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      },
+      "Type": "AWS::EC2::RouteTable"
+    },
+    "PrivateRouteTable2": {
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      },
+      "Type": "AWS::EC2::RouteTable"
+    },
+    "PrivateSubnet1": {
+      "Properties": {
+        "AvailabilityZone": {
+          "Ref": "AvailabilityZone1"
+        },
+        "CidrBlock": "10.101.192.128/25",
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      },
+      "Type": "AWS::EC2::Subnet"
+    },
+    "PrivateSubnet2": {
+      "Properties": {
+        "AvailabilityZone": {
+          "Ref": "AvailabilityZone2"
+        },
+        "CidrBlock": "10.101.193.128/25",
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      },
+      "Type": "AWS::EC2::Subnet"
+    },
+    "PrivateSubnetRouteTableAssociation1": {
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PrivateRouteTable1"
+        },
+        "SubnetId": {
+          "Ref": "PrivateSubnet1"
+        }
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation"
+    },
+    "PrivateSubnetRouteTableAssociation2": {
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PrivateRouteTable2"
+        },
+        "SubnetId": {
+          "Ref": "PrivateSubnet2"
+        }
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation"
+    },
+    "PublicRoute1": {
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "InternetGateway"
+        },
+        "RouteTableId": {
+          "Ref": "PublicRouteTable1"
+        }
+      },
+      "Type": "AWS::EC2::Route"
+    },
+    "PublicRoute2": {
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "InternetGateway"
+        },
+        "RouteTableId": {
+          "Ref": "PublicRouteTable2"
+        }
+      },
+      "Type": "AWS::EC2::Route"
+    },
+    "PublicRouteTable1": {
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      },
+      "Type": "AWS::EC2::RouteTable"
+    },
+    "PublicRouteTable2": {
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      },
+      "Type": "AWS::EC2::RouteTable"
+    },
+    "PublicSubnet1": {
+      "Properties": {
+        "AvailabilityZone": {
+          "Ref": "AvailabilityZone1"
+        },
+        "CidrBlock": "10.101.192.0/25",
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      },
+      "Type": "AWS::EC2::Subnet"
+    },
+    "PublicSubnet2": {
+      "Properties": {
+        "AvailabilityZone": {
+          "Ref": "AvailabilityZone2"
+        },
+        "CidrBlock": "10.101.193.0/25",
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      },
+      "Type": "AWS::EC2::Subnet"
+    },
+    "PublicSubnetRouteTableAssociation1": {
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PublicRouteTable1"
+        },
+        "SubnetId": {
+          "Ref": "PublicSubnet1"
+        }
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation"
+    },
+    "PublicSubnetRouteTableAssociation2": {
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PublicRouteTable2"
+        },
+        "SubnetId": {
+          "Ref": "PublicSubnet2"
+        }
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation"
+    },
+    "VPC": {
+      "Properties": {
+        "CidrBlock": "10.101.192.0/23"
+      },
+      "Type": "AWS::EC2::VPC"
+    },
+    "VPCGatewayAttachment": {
+      "DependsOn": "InternetGateway",
+      "Properties": {
+        "InternetGatewayId": {
+          "Ref": "InternetGateway"
+        },
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      },
+      "Type": "AWS::EC2::VPCGatewayAttachment"
+    }
+  }
+}
