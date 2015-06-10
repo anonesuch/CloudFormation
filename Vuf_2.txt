@@ -84,6 +84,278 @@
     }
   },
   "Resources": {
+    "JumpHostSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Allow SSH from anywhere",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "CidrIp": "0.0.0.0/0"
+          }
+        ]
+      }
+    },
+    "SDKARSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Allow ELB access (443, 8080)",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "SourceSecurityGroupId": {
+              "Ref": "JumpHostSG"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "443",
+            "ToPort": "443",
+            "SourceSecurityGroupId": {
+              "Ref": "ELBSG"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "8080",
+            "ToPort": "8080",
+            "SourceSecurityGroupId": {
+              "Ref": "ELBSG"
+            }
+          }
+        ]
+      }
+    },
+    "ETLSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Allow SSH from Jumphost",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "80",
+            "ToPort": "80",
+            "SourceSecurityGroupId": {
+              "Ref": "JumpHostSG"
+            }
+          }
+        ]
+      }
+    },
+    "ELBSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Allow HTTP/S",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "80",
+            "ToPort": "80",
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "443",
+            "ToPort": "443",
+            "CidrIp": "0.0.0.0/0"
+          }
+        ]
+      }
+    },
+    "DevUISG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Access to Dev UI",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "80",
+            "ToPort": "80",
+            "SourceSecurityGroupId": {
+              "Ref": "ELBSG"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "443",
+            "ToPort": "443",
+            "SourceSecurityGroupId": {
+              "Ref": "ELBSG"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "9000",
+            "ToPort": "9000",
+            "SourceSecurityGroupId": {
+              "Ref": "ELBSG"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "SourceSecurityGroupId": {
+              "Ref": "JumpHostSG"
+            }
+          }
+        ]
+      }
+    },
+    "TMSUISG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Access to TMS UI",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "8080",
+            "ToPort": "8080",
+            "SourceSecurityGroupId": {
+              "Ref": "DevUISG"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "SourceSecurityGroupId": {
+              "Ref": "JumpHostSG"
+            }
+          }
+        ]
+      }
+    },
+    "DEVUIDBSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Access to DEV UI Database",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "3306",
+            "ToPort": "3306",
+            "SourceSecurityGroupId": {
+              "Ref": "DevUISG"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "3306",
+            "ToPort": "3306",
+            "SourceSecurityGroupId": {
+              "Ref": "TMSUISG"
+            }
+          }
+        ]
+      }
+    },
+    "SDKDBSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Access to SDK and AR Database",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "3306",
+            "ToPort": "3306",
+            "SourceSecurityGroupId": {
+              "Ref": "SDKARSG"
+            }
+          }
+        ]
+      }
+    },
+    "DWDBSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Access to Data Warehouse Database",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "3306",
+            "ToPort": "3306",
+            "SourceSecurityGroupId": {
+              "Ref": "DevUISG"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "3306",
+            "ToPort": "3306",
+            "SourceSecurityGroupId": {
+              "Ref": "ETLSG"
+            }
+          }
+        ]
+      }
+    },
+    "ReportingSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Access to Reporting UI",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "80",
+            "ToPort": "80",
+            "SourceSecurityGroupId": {
+              "Ref": "ELBSG"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "443",
+            "ToPort": "443",
+            "SourceSecurityGroupId": {
+              "Ref": "ELBSG"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "SourceSecurityGroupId": {
+              "Ref": "JumpHostSG"
+            }
+          }
+        ]
+      }
+    },
     "InternetGateway": {
       "Type": "AWS::EC2::InternetGateway"
     },
@@ -197,6 +469,11 @@
         "InstanceInitiatedShutdownBehavior": "stop",
         "ImageId": "ami-e7527ed7",
         "InstanceType": "m3.medium",
+        "SecurityGroupIds": [
+          {
+            "Ref": "JumpHostSG"
+          }
+        ],
         "KeyName": {
           "Ref": "KeyName"
         },
