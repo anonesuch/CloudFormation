@@ -87,6 +87,36 @@
     "InternetGateway": {
       "Type": "AWS::EC2::InternetGateway"
     },
+    "NatEip1": {
+      "DependsOn": "VPCGatewayAttachment",
+      "Properties": {
+        "Domain": "vpc",
+        "InstanceId": {
+          "Ref": "NatInstance1"
+        }
+      },
+      "Type": "AWS::EC2::EIP"
+    },
+    "NatEip2": {
+      "DependsOn": "VPCGatewayAttachment",
+      "Properties": {
+        "Domain": "vpc",
+        "InstanceId": {
+          "Ref": "NatInstance2"
+        }
+      },
+      "Type": "AWS::EC2::EIP"
+    },
+    "JumpEip3": {
+      "DependsOn": "VPCGatewayAttachment",
+      "Properties": {
+        "Domain": "vpc",
+        "InstanceId": {
+          "Ref": "JumpHost"
+        }
+      },
+      "Type": "AWS::EC2::EIP"
+    },
     "NatInstance1": {
       "DependsOn": "InternetGateway",
       "Properties": {
@@ -267,7 +297,13 @@
         "CidrBlock": "10.101.192.128/25",
         "VpcId": {
           "Ref": "VPC"
-        }
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "US West 2a (INT)"
+          }
+        ]
       },
       "Type": "AWS::EC2::Subnet"
     },
@@ -279,7 +315,13 @@
         "CidrBlock": "10.101.193.128/25",
         "VpcId": {
           "Ref": "VPC"
-        }
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "US West 2b (INT)"
+          }
+        ]
       },
       "Type": "AWS::EC2::Subnet"
     },
@@ -353,7 +395,13 @@
         "CidrBlock": "10.101.192.0/25",
         "VpcId": {
           "Ref": "VPC"
-        }
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "US West 2a (DMZ)"
+          }
+        ]
       },
       "Type": "AWS::EC2::Subnet"
     },
@@ -365,7 +413,13 @@
         "CidrBlock": "10.101.193.0/25",
         "VpcId": {
           "Ref": "VPC"
-        }
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "US West 2b (DMZ)"
+          }
+        ]
       },
       "Type": "AWS::EC2::Subnet"
     },
@@ -393,7 +447,13 @@
     },
     "VPC": {
       "Properties": {
-        "CidrBlock": "10.101.192.0/23"
+        "CidrBlock": "10.101.192.0/23",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "Vuforia_VPC"
+          }
+        ]
       },
       "Type": "AWS::EC2::VPC"
     },
