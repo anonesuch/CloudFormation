@@ -178,8 +178,7 @@
             "Key": "Name",
             "Value": "jumphost1"
           }
-        ],
-        "AssociatePublicIpAddress": "true"
+        ]
       }
     },
     "NatSecurityGroup": {
