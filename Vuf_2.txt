@@ -32,6 +32,48 @@
     }
   },
   "Parameters": {
+    "VPCCIDR": {
+      "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+      "Description": "VPC CIDR (X.X.0.0/16)",
+      "Type": "String",
+      "Default": "10.101.192.0/23"
+    },
+    "DMZSubnetA": {
+      "Description": "CIDR Block for DMZ Subnet A",
+      "Type": "String",
+      "MinLength": "9",
+      "MaxLength": "18",
+      "Default": "10.101.192.0/25",
+      "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+      "ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x."
+    },
+    "DMZSubnetB": {
+      "Description": "CIDR Block for DMZ Subnet B",
+      "Type": "String",
+      "MinLength": "9",
+      "MaxLength": "18",
+      "Default": "10.101.193.0/25",
+      "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+      "ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x."
+    },
+    "IntSubnetA": {
+      "Description": "CIDR Block for Internal Subnet AZ A",
+      "Type": "String",
+      "MinLength": "9",
+      "MaxLength": "18",
+      "Default": "10.101.193.128/25",
+      "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+      "ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x."
+    },
+    "IntSubnetB": {
+      "Description": "CIDR Block for Internal Subnet AZ B",
+      "Type": "String",
+      "MinLength": "9",
+      "MaxLength": "18",
+      "Default": "10.101.192.128/25",
+      "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+      "ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x."
+    },
     "AvailabilityZone1": {
       "AllowedPattern": "[-a-zA-Z0-9]*",
       "ConstraintDescription": "Alphanumeric characters and dashes only",
@@ -97,6 +139,114 @@
             "FromPort": "22",
             "ToPort": "22",
             "CidrIp": "0.0.0.0/0"
+          }
+        ]
+      }
+    },
+    "NFSSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Placeholder for NFS Server SG",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "SourceSecurityGroupId": {
+              "Ref": "JumpHostSG"
+            }
+          }
+        ]
+      }
+    },
+    "NATSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "What to allow out to the world through the NAT box",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "80",
+            "ToPort": "80",
+            "CidrIp": {
+              "Ref": "VPCCIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "443",
+            "ToPort": "443",
+            "CidrIp": {
+              "Ref": "VPCCIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "2049",
+            "ToPort": "2049",
+            "CidrIp": {
+              "Ref": "VPCCIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "465",
+            "ToPort": "465",
+            "CidrIp": {
+              "Ref": "VPCCIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "25",
+            "ToPort": "25",
+            "CidrIp": {
+              "Ref": "VPCCIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "111",
+            "ToPort": "111",
+            "CidrIp": {
+              "Ref": "VPCCIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "8443",
+            "ToPort": "8443",
+            "SourceSecurityGroupId": {
+              "Ref": "SDKARSG"
+            }
+          },
+          {
+            "IpProtocol": "udp",
+            "FromPort": "123",
+            "ToPort": "123",
+            "SourceSecurityGroupId": {
+              "Ref": "NFSSG"
+            }
+          },
+          {
+            "IpProtocol": "icmp",
+            "FromPort": "-1",
+            "ToPort": "-1",
+            "CidrIp": {
+              "Ref": "VPCCIDR"
+            }
           }
         ]
       }
@@ -571,7 +721,9 @@
         "AvailabilityZone": {
           "Ref": "AvailabilityZone1"
         },
-        "CidrBlock": "10.101.192.128/25",
+        "CidrBlock": {
+          "Ref": "IntSubnetA"
+        },
         "VpcId": {
           "Ref": "VPC"
         },
@@ -589,7 +741,9 @@
         "AvailabilityZone": {
           "Ref": "AvailabilityZone2"
         },
-        "CidrBlock": "10.101.193.128/25",
+        "CidrBlock": {
+          "Ref": "IntSubnetB"
+        },
         "VpcId": {
           "Ref": "VPC"
         },
@@ -669,7 +823,9 @@
         "AvailabilityZone": {
           "Ref": "AvailabilityZone1"
         },
-        "CidrBlock": "10.101.192.0/25",
+        "CidrBlock": {
+          "Ref": "DMZSubnetA"
+        },
         "VpcId": {
           "Ref": "VPC"
         },
@@ -687,7 +843,9 @@
         "AvailabilityZone": {
           "Ref": "AvailabilityZone2"
         },
-        "CidrBlock": "10.101.193.0/25",
+        "CidrBlock": {
+          "Ref": "DMZSubnetB"
+        },
         "VpcId": {
           "Ref": "VPC"
         },
