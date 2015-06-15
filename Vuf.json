@@ -106,14 +106,10 @@
       "MinLength": "10",
       "Type": "String"
     },
-    "KeyName": {
-      "AllowedPattern": "[-_ a-zA-Z0-9]*",
-      "ConstraintDescription": "Alphanumeric characters, underscores, dashes only",
-      "Description": "Existing key pair to access instances",
-      "MaxLength": "64",
-      "MinLength": "1",
-      "Default": "ecvudwhpoc",
-      "Type": "String"
+        "KeyName" : {
+      "Description" : "Name of an existing EC2 KeyPair",
+      "Type" : "AWS::EC2::KeyPair::KeyName",
+      "ConstraintDescription" : "must be the name of an existing EC2 KeyPair."
     },
     "NatInstanceType": {
       "AllowedValues": [
