@@ -1989,8 +1989,16 @@
           },
           {
             "IpProtocol": "tcp",
-            "FromPort": "111",
-            "ToPort": "111",
+            "FromPort": "2010",
+            "ToPort": "2014",
+            "CidrIp": {
+              "Ref": "VPCCIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "2049",
+            "ToPort": "2049",
             "CidrIp": {
               "Ref": "VPCCIDR"
             }
