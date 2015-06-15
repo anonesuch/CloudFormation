@@ -115,6 +115,18 @@
       "Default": "ecvudwhpoc",
       "Type": "String"
     },
+    "SSLCert": {
+      "AllowedValues": [
+        "arn:aws:iam::190720247914:server-certificate/www.example.com-phase-3-cloudformation-DO-NOT-USE",
+        "arn:aws:iam::804767564768:server-certificate/www.example.com-phase-3-cloudformation-DO-NOT-USE",
+        "arn:aws:iam::875666177027:server-certificate/www.example.com-phase-3-cloudformation-DO-NOT-USE"
+      ],
+      "Description": "Choose SSL Cert to match environment 190720247914(DEV), 875666177027(STG), 804767564768(PRD)",
+      "MaxLength": "200",
+      "MinLength": "1",
+      "Default": "arn:aws:iam::190720247914:server-certificate/www.example.com-phase-3-cloudformation-DO-NOT-USE",
+      "Type": "String"
+    },
     "NatInstanceType": {
       "AllowedValues": [
         "t1.micro",
@@ -561,7 +573,11 @@
             "LoadBalancerPort": "443",
             "Protocol": "HTTPS",
             "InstanceProtocol": "HTTP",
-            "SSLCertificateId": "arn:aws:iam::190720247914:server-certificate/www.example.com-phase-3-cloudformation-DO-NOT-USE",
+            "SSLCertificateId": [
+              {
+                "Ref": "SSLCert"
+              }
+            ],
             "PolicyNames": [
               "SSLNegotiationPolicy-dp"
             ]
@@ -1005,7 +1021,11 @@
             "LoadBalancerPort": "443",
             "Protocol": "HTTPS",
             "InstanceProtocol": "HTTP",
-            "SSLCertificateId": "arn:aws:iam::190720247914:server-certificate/www.example.com-phase-3-cloudformation-DO-NOT-USE",
+            "SSLCertificateId": [
+              {
+                "Ref": "SSLCert"
+              }
+            ],
             "PolicyNames": [
               "SSLNegotiationPolicy-reports"
             ]
@@ -1440,7 +1460,11 @@
             "LoadBalancerPort": "443",
             "Protocol": "HTTPS",
             "InstanceProtocol": "HTTP",
-            "SSLCertificateId": "arn:aws:iam::190720247914:server-certificate/www.example.com-phase-3-cloudformation-DO-NOT-USE",
+            "SSLCertificateId": [
+              {
+                "Ref": "SSLCert"
+              }
+            ],
             "PolicyNames": [
               "SSLNegotiationPolicy-an-qcarsdk-com"
             ]
@@ -1881,7 +1905,11 @@
             "LoadBalancerPort": "443",
             "Protocol": "HTTPS",
             "InstanceProtocol": "HTTP",
-            "SSLCertificateId": "arn:aws:iam::190720247914:server-certificate/www.example.com-phase-3-cloudformation-DO-NOT-USE",
+            "SSLCertificateId": [
+              {
+                "Ref": "SSLCert"
+              }
+            ],
             "PolicyNames": [
               "SSLNegotiationPolicy-ui-vuforia-com"
             ]
