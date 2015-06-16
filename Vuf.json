@@ -31,20 +31,6 @@
       }
     }
   },
-  "Outputs": {
-    "InstanceIDNFS1": {
-      "Description": "Instance ID for NFS1",
-      "Value": {
-        "Ref": "NFS1"
-      }
-    },
-    "InstanceIDNFS2": {
-      "Description": "Instance ID for NFS2",
-      "Value": {
-        "Ref": "NFS2"
-      }
-    }
-  },
   "Parameters": {
     "VPCCIDR": {
       "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
@@ -106,10 +92,10 @@
       "MinLength": "10",
       "Type": "String"
     },
-        "KeyName" : {
-      "Description" : "Name of an existing EC2 KeyPair",
-      "Type" : "AWS::EC2::KeyPair::KeyName",
-      "ConstraintDescription" : "must be the name of an existing EC2 KeyPair."
+    "KeyName": {
+      "Description": "Name of an existing EC2 KeyPair",
+      "Type": "AWS::EC2::KeyPair::KeyName",
+      "ConstraintDescription": "must be the name of an existing EC2 KeyPair."
     },
     "NatInstanceType": {
       "AllowedValues": [
@@ -2349,56 +2335,6 @@
     "InternetGateway": {
       "Type": "AWS::EC2::InternetGateway"
     },
-    "NatEip1": {
-      "DependsOn": "VPCGatewayAttachment",
-      "Properties": {
-        "Domain": "vpc",
-        "InstanceId": {
-          "Ref": "NatInstance1"
-        }
-      },
-      "Type": "AWS::EC2::EIP"
-    },
-    "NatEip2": {
-      "DependsOn": "VPCGatewayAttachment",
-      "Properties": {
-        "Domain": "vpc",
-        "InstanceId": {
-          "Ref": "NatInstance2"
-        }
-      },
-      "Type": "AWS::EC2::EIP"
-    },
-    "JumpEip3": {
-      "DependsOn": "VPCGatewayAttachment",
-      "Properties": {
-        "Domain": "vpc",
-        "InstanceId": {
-          "Ref": "JumpHost"
-        }
-      },
-      "Type": "AWS::EC2::EIP"
-    },
-    "NFSEip4": {
-      "DependsOn": "VPCGatewayAttachment",
-      "Properties": {
-        "Domain": "vpc",
-        "InstanceId": {
-          "Ref": "NFS1"
-        }
-      },
-      "Type": "AWS::EC2::EIP"
-    },
-    "NFSEip5": {
-      "DependsOn": "VPCGatewayAttachment",
-      "Properties": {
-        "Domain": "vpc",
-        "InstanceId": {
-          "Ref": "NFS2"
-        }
-      },
-      "Type": "AWS::EC2::EIP"
-    },
     "NatInstance1": {
       "DependsOn": "InternetGateway",
       "Properties": {
@@ -2417,19 +2353,26 @@
         "KeyName": {
           "Ref": "KeyName"
         },
-        "SecurityGroupIds": [
-          {
-            "Ref": "NATSG"
-          }
-        ],
         "SourceDestCheck": "false",
-        "SubnetId": {
-          "Ref": "PublicSubnet1"
-        },
         "Tags": [
           {
             "Key": "Name",
             "Value": "networkaddresstranslation1"
+          }
+        ],
+        "NetworkInterfaces": [
+          {
+            "GroupSet": [
+              {
+                "Ref": "NATSG"
+              }
+            ],
+            "AssociatePublicIpAddress": "true",
+            "DeviceIndex": "0",
+            "DeleteOnTermination": "true",
+            "SubnetId": {
+              "Ref": "PublicSubnet1"
+            }
           }
         ]
       },
@@ -2453,19 +2396,26 @@
         "KeyName": {
           "Ref": "KeyName"
         },
-        "SecurityGroupIds": [
-          {
-            "Ref": "NATSG"
-          }
-        ],
         "SourceDestCheck": "false",
-        "SubnetId": {
-          "Ref": "PublicSubnet2"
-        },
         "Tags": [
           {
             "Key": "Name",
             "Value": "networkaddresstranslation2"
+          }
+        ],
+        "NetworkInterfaces": [
+          {
+            "GroupSet": [
+              {
+                "Ref": "NATSG"
+              }
+            ],
+            "AssociatePublicIpAddress": "true",
+            "DeviceIndex": "0",
+            "DeleteOnTermination": "true",
+            "SubnetId": {
+              "Ref": "PublicSubnet2"
+            }
           }
         ]
       },
@@ -2479,75 +2429,28 @@
         "InstanceInitiatedShutdownBehavior": "stop",
         "ImageId": "ami-e7527ed7",
         "InstanceType": "m3.medium",
-        "SecurityGroupIds": [
-          {
-            "Ref": "JumpHostSG"
-          }
-        ],
         "KeyName": {
           "Ref": "KeyName"
-        },
-        "SubnetId": {
-          "Ref": "PublicSubnet1"
         },
         "Tags": [
           {
             "Key": "Name",
             "Value": "jumphost1"
           }
-        ]
-      }
-    },
-    "NFS1": {
-      "DependsOn": "InternetGateway",
-      "Type": "AWS::EC2::Instance",
-      "Properties": {
-        "DisableApiTermination": "false",
-        "InstanceInitiatedShutdownBehavior": "stop",
-        "ImageId": "ami-e7527ed7",
-        "InstanceType": "t2.micro",
-        "SecurityGroupIds": [
-          {
-            "Ref": "NFSSG"
-          }
         ],
-        "KeyName": {
-          "Ref": "KeyName"
-        },
-        "SubnetId": {
-          "Ref": "PublicSubnet1"
-        },
-        "Tags": [
+        "NetworkInterfaces": [
           {
-            "Key": "Name",
-            "Value": "NFS2"
-          }
-        ]
-      }
-    },
-    "NFS2": {
-      "DependsOn": "InternetGateway",
-      "Type": "AWS::EC2::Instance",
-      "Properties": {
-        "DisableApiTermination": "false",
-        "InstanceInitiatedShutdownBehavior": "stop",
-        "ImageId": "ami-e7527ed7",
-        "InstanceType": "t2.micro",
-        "SecurityGroupIds": [
-          {
-            "Ref": "NFSSG"
-          }
-        ],
-        "KeyName": {
-          "Ref": "KeyName"
-        },
-        "SubnetId": {
-          "Ref": "PublicSubnet2"
-        },
-        "Tags": [
-          {
-            "Key": "Name",
-            "Value": "NFS2"
+            "GroupSet": [
+              {
+                "Ref": "JumpHostSG"
+              }
+            ],
+            "AssociatePublicIpAddress": "true",
+            "DeviceIndex": "0",
+            "DeleteOnTermination": "true",
+            "SubnetId": {
+              "Ref": "PublicSubnet1"
+            }
           }
         ]
       }
